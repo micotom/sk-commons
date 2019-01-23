@@ -7,6 +7,21 @@ import model.GameType
 
 sealed class Rule(firstCard: Cards, gameType: GameType) : () -> Option<Set<Cards>> {
 
+    companion object {
+        fun findRule(firstCard: Cards, cardsOnHand: Set<Cards>, gameType: GameType): Rule {
+            val giveColorRule = Rule.GiveColor(firstCard, gameType, cardsOnHand)
+            val giveTrumpRule = Rule.GiveTrump(firstCard, gameType, cardsOnHand)
+            val giveFreeRule = Rule.GiveFree(firstCard, gameType, cardsOnHand)
+            return when (giveColorRule.applies()) {
+                true -> giveColorRule
+                false -> when (giveTrumpRule.applies()) {
+                    true -> giveTrumpRule
+                    false -> giveFreeRule
+                }
+            }
+        }
+    }
+
     abstract fun applies(): Boolean
 
     abstract fun findCards(): Set<Cards>
@@ -28,7 +43,7 @@ sealed class Rule(firstCard: Cards, gameType: GameType) : () -> Option<Set<Cards
             }
         }
 
-        override fun findCards() = ownCards.filter { firstCard.color == it.color }.toSet()
+        override fun findCards() = ownCards.filter { !gameType.trumps.contains(it) && firstCard.color == it.color }.toSet()
 
     }
 

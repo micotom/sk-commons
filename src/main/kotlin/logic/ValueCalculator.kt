@@ -7,9 +7,13 @@ import model.GameType
 fun Cards.beats(otherCard: Cards, gameType: GameType) =
     when (gameType.trumps.contains(this) || gameType.trumps.contains(otherCard) || this.color == otherCard.color) {
         true -> ValueCalculator.getValueFor(this, setOf(otherCard, this), gameType) >
-                    ValueCalculator.getValueFor(otherCard, setOf(this, otherCard), gameType)
+                ValueCalculator.getValueFor(otherCard, setOf(this, otherCard), gameType)
         false -> false
     }
+
+fun Set<Cards>.orderBy(gameType: GameType) = this.sortedBy { card ->
+    ValueCalculator.getValueFor(card, this, gameType)
+}
 
 object ValueCalculator {
 
@@ -146,49 +150,60 @@ object ValueCalculator {
         data class SauSpiel(private val cardSet: CardSet) : Ranking() {
 
             override val trumpsRanking =
-                listOf(
-                    Cards.HERZ_SIEBENER,
-                    Cards.HERZ_ACHTER,
-                    Cards.HERZ_NEUNER,
-                    Cards.HERZ_KOENIG,
-                    Cards.HERZ_ZEHNER,
-                    Cards.HERZ_AS,
-                    Cards.SCHELLEN_UNTER,
-                    Cards.HERZ_UNTER,
-                    Cards.GRAS_UNTER,
-                    Cards.EICHEL_UNTER,
-                    Cards.SCHELLEN_OBER,
-                    Cards.HERZ_OBER,
-                    Cards.GRAS_OBER,
-                    Cards.EICHEL_OBER
-                )
+                when (cardSet) {
+                    is CardSet.Long -> listOf(Cards.HERZ_SIEBENER, Cards.HERZ_ACHTER)
+                    is CardSet.Short -> emptyList()
+                } +
+                        listOf(
+                            Cards.HERZ_NEUNER,
+                            Cards.HERZ_KOENIG,
+                            Cards.HERZ_ZEHNER,
+                            Cards.HERZ_AS,
+                            Cards.SCHELLEN_UNTER,
+                            Cards.HERZ_UNTER,
+                            Cards.GRAS_UNTER,
+                            Cards.EICHEL_UNTER,
+                            Cards.SCHELLEN_OBER,
+                            Cards.HERZ_OBER,
+                            Cards.GRAS_OBER,
+                            Cards.EICHEL_OBER
+                        )
 
             override val nonTrumpsRanking: Map<Cards.Color, List<Cards>> =
                 mapOf(
-                    Cards.Color.EICHEL to listOf(
-                        Cards.EICHEL_SIEBENER,
-                        Cards.EICHEL_ACHTER,
-                        Cards.EICHEL_NEUNER,
-                        Cards.EICHEL_KOENIG,
-                        Cards.EICHEL_ZEHNER,
-                        Cards.EICHEL_AS
-                    ),
-                    Cards.Color.GRAS to listOf(
-                        Cards.GRAS_SIEBENER,
-                        Cards.GRAS_ACHTER,
-                        Cards.GRAS_NEUNER,
-                        Cards.GRAS_KOENIG,
-                        Cards.GRAS_ZEHNER,
-                        Cards.GRAS_AS
-                    ),
-                    Cards.Color.SCHELLEN to listOf(
-                        Cards.SCHELLEN_SIEBENER,
-                        Cards.SCHELLEN_ACHTER,
-                        Cards.SCHELLEN_NEUNER,
-                        Cards.SCHELLEN_KOENIG,
-                        Cards.SCHELLEN_ZEHNER,
-                        Cards.SCHELLEN_AS
-                    )
+                    Cards.Color.EICHEL to
+                            when (cardSet) {
+                                is CardSet.Long -> listOf(Cards.EICHEL_SIEBENER, Cards.EICHEL_ACHTER)
+                                is CardSet.Short -> emptyList()
+                            } +
+                            listOf(
+                                Cards.EICHEL_NEUNER,
+                                Cards.EICHEL_KOENIG,
+                                Cards.EICHEL_ZEHNER,
+                                Cards.EICHEL_AS
+                            ),
+                    Cards.Color.GRAS to
+                            when (cardSet) {
+                                is CardSet.Long -> listOf(Cards.GRAS_SIEBENER, Cards.GRAS_AS)
+                                is CardSet.Short -> emptyList()
+                            } +
+                            listOf(
+                                Cards.GRAS_NEUNER,
+                                Cards.GRAS_KOENIG,
+                                Cards.GRAS_ZEHNER,
+                                Cards.GRAS_AS
+                            ),
+                    Cards.Color.SCHELLEN to
+                            when (cardSet) {
+                                is CardSet.Long -> listOf(Cards.SCHELLEN_SIEBENER, Cards.SCHELLEN_ACHTER)
+                                is CardSet.Short -> emptyList()
+                            } +
+                            listOf(
+                                Cards.SCHELLEN_NEUNER,
+                                Cards.SCHELLEN_KOENIG,
+                                Cards.SCHELLEN_ZEHNER,
+                                Cards.SCHELLEN_AS
+                            )
                 )
 
         }
